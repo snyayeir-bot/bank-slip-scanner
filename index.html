@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Payment Slip Scanner | ស្គែនបង្កាន់ដៃផ្ទេរប្រាក់</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at 10% 20%, #1e1b4b 0%, #0f172a 40%, #020617 90%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.35);
+            --accent: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1040px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, #93c5fd 70%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* Main Grid */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 860px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 26px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Upload Area */
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(15, 23, 42, 0.4);
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.08);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .upload-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(99, 102, 241, 0.12);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 14px;
+            color: #818cf8;
+        }
+
+        .upload-text {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .upload-subtext {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .preview-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-height: 320px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .change-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Scan Button */
+        .btn-scan {
+            margin-top: 18px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #ffffff;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
+        }
+
+        .btn-scan:hover:not(:disabled) {
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.6);
+        }
+
+        .btn-scan:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result Panel */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .result-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-tag {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+        }
+
+        .status-tag.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* Receipt Card */
+        .receipt-card {
+            background: #090e1a;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .receipt-hero {
+            text-align: center;
+            padding-bottom: 14px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .receipt-bank {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .receipt-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #34d399;
+            margin: 4px 0;
+        }
+
+        .receipt-type {
+            display: inline-block;
+            font-size: 12px;
+            background: rgba(56, 189, 248, 0.12);
+            color: #7dd3fc;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+        }
+
+        .receipt-label {
+            color: var(--text-muted);
+        }
+
+        .receipt-value {
+            font-weight: 600;
+            text-align: right;
+            color: #f1f5f9;
+        }
+
+        /* Code/JSON View */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .json-box {
+            background: #020617;
+            border: 1px solid #1e293b;
+            padding: 14px;
+            border-radius: 10px;
+            color: #38bdf8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+            margin-top: 10px;
+        }
+
+        /* Spinner Animation */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="badge-pill">
+                <span class="badge-dot"></span>
+                <span>Powered by Gemini 2.5 Flash & PyZbar</span>
+            </div>
+            <h1>ស្គែនបង្កាន់ដៃផ្ទេរប្រាក់ (Bank Slip Scanner)</h1>
+            <p>ប្រព័ន្ធ REST API ឆ្លាតវៃសម្រាប់ស្គែនទិន្នន័យពី Bank Slip (ABA, ACLEDA, Bakong, Wing...)</p>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="grid-layout">
+            <!-- Left: Upload Card -->
+            <div class="card">
+                <div class="upload-zone" id="dropZone" onclick="document.getElementById('slipInput').click()">
+                    <div id="uploadPrompt">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">ចុច ឬ អូសទម្លាក់រូបភាព Slip មកទីនេះ</div>
+                        <div class="upload-subtext">JPG, PNG, WEBP, JPEG</div>
+                    </div>
+
+                    <div class="preview-wrapper" id="previewWrapper">
+                        <img id="previewImg" class="preview-img" alt="Slip Preview" />
+                        <button type="button" class="change-btn" onclick="event.stopPropagation(); document.getElementById('slipInput').click();">ប្តូររូបភាព</button>
+                    </div>
+
+                    <input type="file" id="slipInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+                </div>
+
+                <button class="btn-scan" id="scanBtn" onclick="scanSlip()" disabled>
+                    <div class="spinner" id="spinner"></div>
+                    <span id="btnText">⚡ ស្គែនទិន្នន័យ (Scan Slip API)</span>
+                </button>
+            </div>
+
+            <!-- Right: Result Card -->
+            <div class="card">
+                <div class="result-header">
+                    <h3>📋 លទ្ធផលស្គែន (Extracted Details)</h3>
+                    <span class="status-tag" id="statusBadge">រង់ចាំរូបភាព...</span>
+                </div>
+
+                <!-- Structured Receipt Display -->
+                <div class="receipt-card" id="receiptCard">
+                    <div class="receipt-hero">
+                        <div class="receipt-bank" id="resBank">---</div>
+                        <div class="receipt-amount" id="resAmount">0.00</div>
+                        <span class="receipt-type" id="resType">ប្រភេទប្រតិបត្តិការ</span>
+                    </div>
+
+                    <div class="receipt-row">
+                        <span class="receipt-label">👤 អ្នកផ្ញើ:</span>
+                        <span class="receipt-value" id="resSender">---</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">👥 អ្នកទទួល:</span>
+                        <span class="receipt-value" id="resReceiver">---</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">🔢 លេខយោង (Trx ID):</span>
+                        <span class="receipt-value" id="resTrx" style="color: #38bdf8;">---</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">📅 កាលបរិច្ឆេទ:</span>
+                        <span class="receipt-value" id="resDate">---</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">⏰ ពេលវេលា:</span>
+                        <span class="receipt-value" id="resTime">---</span>
+                    </div>
+                    <div class="receipt-row" id="qrRow" style="display: none;">
+                        <span class="receipt-label">🔲 QR Code:</span>
+                        <span class="receipt-value" id="resQr" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">---</span>
+                    </div>
+                </div>
+
+                <!-- Tabs for View toggle -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchView('visual')">ទម្រង់កាត (Visual Card)</button>
+                    <button class="tab-btn" onclick="switchView('json')">ទម្រង់ JSON (Raw API)</button>
+                </div>
+
+                <pre class="json-box" id="jsonBox">{}</pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            Bank Slip Scanner REST API • Endpoint <code>POST /api/scan-slip</code>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // Drag and drop handlers
+        const dropZone = document.getElementById('dropZone');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                loadFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                loadFile(input.files[0]);
+            }
+        }
+
+        function loadFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewWrapper').style.display = 'flex';
+                document.getElementById('uploadPrompt').style.display = 'none';
+                document.getElementById('scanBtn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function scanSlip() {
+            if (!selectedFile) return;
+
+            const btn = document.getElementById('scanBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const badge = document.getElementById('statusBadge');
+            const jsonBox = document.getElementById('jsonBox');
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.innerText = "កំពុងស្គែនជាមួយ AI...";
+            badge.className = "status-tag";
+            badge.innerText = "⏳ កំពុងដំណើរការ...";
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/api/scan-slip', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                jsonBox.innerText = JSON.stringify(result, null, 2);
+
+                if (result.success && result.data) {
+                    const d = result.data;
+                    document.getElementById('resBank').innerText = d.bank_name || 'Bank Slip';
+                    document.getElementById('resAmount').innerText = (d.amount || '0') + ' ' + (d.currency || '');
+                    document.getElementById('resType').innerText = d.transaction_type || 'ប្រតិបត្តិការផ្ទេរប្រាក់';
+                    
+                    document.getElementById('resSender').innerText = (d.sender_name || '---') + (d.sender_account ? ` (${d.sender_account})` : '');
+                    document.getElementById('resReceiver').innerText = (d.receiver_name || '---') + (d.receiver_account ? ` (${d.receiver_account})` : '');
+                    document.getElementById('resTrx').innerText = d.transaction_id || '---';
+                    document.getElementById('resDate').innerText = d.date || '---';
+                    document.getElementById('resTime').innerText = d.time || '---';
+
+                    if (d.qr_data) {
+                        document.getElementById('qrRow').style.display = 'flex';
+                        document.getElementById('resQr').innerText = d.qr_data;
+                    } else {
+                        document.getElementById('qrRow').style.display = 'none';
+                    }
+
+                    badge.className = "status-tag active";
+                    badge.innerText = "✅ ជោគជ័យ (200 OK)";
+                } else {
+                    badge.className = "status-tag";
+                    badge.innerText = "❌ បរាជ័យ";
+                    alert(result.error || "មិនអាចស្គែនបានទេ!");
+                }
+            } catch (err) {
+                badge.className = "status-tag";
+                badge.innerText = "❌ Error: " + err.message;
+                jsonBox.innerText = JSON.stringify({ error: err.message }, null, 2);
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.innerText = "⚡ ស្គែនទិន្នន័យ (Scan Slip API)";
+            }
+        }
+
+        function switchView(type) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const receiptCard = document.getElementById('receiptCard');
+            const jsonBox = document.getElementById('jsonBox');
+
+            if (type === 'visual') {
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+                receiptCard.style.display = 'flex';
+                jsonBox.style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                tabs[0].classList.remove('active');
+                receiptCard.style.display = 'none';
+                jsonBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
